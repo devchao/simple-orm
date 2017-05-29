@@ -109,18 +109,22 @@ public class Dao {
 			throw new RuntimeException("Class[" + entity.getClass().getName() + "] is not an Entity!");
 		}
 		
-		//TODO 主键策略
+		// 主键值
 		Long keyValue = orm.getObjectKey(entity);
 		if (keyValue == null) {
-			 keyValue = 0L;
+			keyValue = keyPolicy.nextVal();
 		}
 		
-		KeyHolder keyholder = new GeneratedKeyHolder();
 		MapSqlParameterSource ps = new MapSqlParameterSource();
 		ps.addValues(orm.paramsMap(entity));
-		namedParameterJdbcTemplate.update(orm.getCreateSql(entity), ps, keyholder);
-		keyValue = keyholder.getKey().longValue();
-		orm.setObjectKey(entity, keyValue);
+		
+		if(keyPolicy instanceof MySQLProvider) {
+			KeyHolder keyholder = new GeneratedKeyHolder();
+			namedParameterJdbcTemplate.update(orm.getCreateSql(entity), ps, keyholder);
+			orm.setObjectKey(entity, keyValue = keyholder.getKey().longValue());
+		} else {
+			namedParameterJdbcTemplate.update(orm.getCreateSql(entity), ps);
+		}
 		return keyValue;
 	}
 
@@ -140,7 +144,7 @@ public class Dao {
 		Class<?> type = t;
 		int result = jdbcTemplate.update(orm.getDeleteSql(type), key);
 		
-		deleteCache(type, key);
+		this.deleteCache(type, key);
 		return result;
 	}
 

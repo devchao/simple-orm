@@ -3,13 +3,8 @@ package com.devchao.orm.keyPolicy;
 public class MySQLProvider implements KeyPolicy {
 
 	@Override
-	public String nextVal() {
-		return "0";
+	public long nextVal() {
+		return 0L;
 	}
-
-	@Override
-	public Class<?> getKeyType() {
-		return Long.class;
-	}
-
+	
 }

@@ -3,7 +3,7 @@ package com.devchao.orm.cache;
 import java.util.List;
 
 /**
- * redis外部缓存策略
+ * redis外部缓存策略 TODO
  */
 public class RedisProvider implements ExternalCache {
 	

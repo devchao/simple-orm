@@ -16,13 +16,8 @@ public class TwitterProvider implements KeyPolicy {
 	}
 	
 	@Override
-	public String nextVal() {
-		return String.valueOf(idWorker.nextId());
-	}
-
-	@Override
-	public Class<?> getKeyType() {
-		return Long.class;
+	public long nextVal() {
+		return idWorker.nextId();
 	}
 
 }

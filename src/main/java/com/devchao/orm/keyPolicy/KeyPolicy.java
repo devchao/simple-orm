@@ -8,11 +8,6 @@ public interface KeyPolicy {
 	/**
 	 * 主键的值
 	 */
-	String nextVal();
-	
-	/**
-	 * 主键值的数据类型：支持Long和String
-	 */
-	Class<?> getKeyType();
+	long nextVal();
 	
 }
