@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
  * 封装get 方法
  */
 public class Getter {
+	
 	private Method method;
 	private String fieldName;
 	private String columnName;

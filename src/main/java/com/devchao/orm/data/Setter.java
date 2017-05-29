@@ -63,7 +63,7 @@ public class Setter {
         return null;
     }
 	
-	boolean isEmpty(String str) {
+	public boolean isEmpty(String str) {
 		return StringUtils.isBlank(str);
 	}
 

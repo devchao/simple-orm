@@ -5,8 +5,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.devchao.orm.enums.PkPolicy;
-
 /**
  * 标记类为实体
  */
@@ -29,8 +27,4 @@ public @interface Entity {
 	 */
 	boolean extCache() default false;
 	
-	/**
-	 * 主键策略
-	 */
-	PkPolicy primaryKeyPolicy() default PkPolicy.INCREMENT;
 }

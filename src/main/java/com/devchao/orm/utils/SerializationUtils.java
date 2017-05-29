@@ -58,7 +58,7 @@ public class SerializationUtils {
 	/**
 	 * Json反序列化
 	 */
-	public static Object fromJsonString(String jsonStr, Class<?> clazz) {
+	public static <T> T fromJsonString(String jsonStr, Class<T> clazz) {
 		return JSON.parseObject(jsonStr, clazz);
 	}
 	

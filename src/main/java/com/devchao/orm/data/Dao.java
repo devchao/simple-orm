@@ -13,20 +13,31 @@ import org.springframework.jdbc.support.KeyHolder;
 
 import com.alibaba.fastjson.JSON;
 import com.devchao.orm.cache.ExternalCache;
+import com.devchao.orm.cache.HashCacheProvider;
 import com.devchao.orm.cache.LocalCache;
+import com.devchao.orm.keyPolicy.KeyPolicy;
+import com.devchao.orm.keyPolicy.MySQLProvider;
 import com.devchao.orm.page.SqlPageBuilder;
+import com.devchao.orm.page.SqlPageBuilder4MySQL;
 import com.devchao.orm.utils.StringUtils;
 
 public class Dao {
 	
+	private ORM orm;
 	private JdbcTemplate jdbcTemplate;
 	private JdbcTemplate jdbcTemplateSlave;
 	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-	private ORM orm;
+	private LocalCache localCache;
+	private ExternalCache externalCache;
 	private SqlPageBuilder sqlPageBuilder;
-	private LocalCache cacheFirstLevel;
-	private ExternalCache cacheSecondLevel;
+	private KeyPolicy keyPolicy;
 
+	public Dao() {
+		localCache = new HashCacheProvider();//默认是hashMap本地缓存策略
+		sqlPageBuilder = new SqlPageBuilder4MySQL();//默认是MySQL的分页策略
+		keyPolicy = new MySQLProvider();//默认是MySQL自增主键策略
+	}
+	
 	/**
 	 * 根据@Key定义的主键查找数据, 首先会从一级缓存和二级缓存寻找，如果没有，从数据库寻找，如果有将数据放到缓存中
 	 * 
@@ -68,20 +79,20 @@ public class Dao {
 		String cacheKey = getCacheKey(type, key);
 		
 		// 从一级缓存获取
-		if (enableFirstCache(type)) {
-			Object o = cacheFirstLevel.get(cacheKey);
+		if (enableLocalCache(type)) {
+			Object o = localCache.get(cacheKey);
 			if (o != null) {
 				return (T)o;
 			}
 		}
 		
 		// 再从二级缓存获取
-		if (enableSecondCache(type)) {
-			String s = (String) cacheSecondLevel.get(cacheKey);
+		if (enableExternalCache(type)) {
+			String s = (String) externalCache.get(cacheKey);
 			if (s != null) {
 				T o = string2Object(type, s);
-				if (enableFirstCache(type)) {
-					cacheFirstLevel.set(cacheKey, o);
+				if (enableLocalCache(type)) {
+					localCache.set(cacheKey, o);
 				}
 				return o;
 			}
@@ -98,6 +109,7 @@ public class Dao {
 			throw new RuntimeException("Class[" + entity.getClass().getName() + "] is not an Entity!");
 		}
 		
+		//TODO 主键策略
 		Long keyValue = orm.getObjectKey(entity);
 		if (keyValue == null) {
 			 keyValue = 0L;
@@ -201,7 +213,7 @@ public class Dao {
 		return result;
 	}
 
-	/**
+	/**TODO 批量获取缓存
 	 * 获取数据列表
 	 * 
 	 * @param type
@@ -251,15 +263,15 @@ public class Dao {
 		}
 		
 		String cacheKey = null;
-		if (enableSecondCache(type)) {
+		if (enableExternalCache(type)) {
 			cacheKey = getCacheKey(type, key);
-			cacheSecondLevel.delete(cacheKey);
+			externalCache.delete(cacheKey);
 		}
-		if (enableFirstCache(type)) {
+		if (enableLocalCache(type)) {
 			if (cacheKey == null) {
 				cacheKey = getCacheKey(type, key);
 			}
-			cacheFirstLevel.delete(cacheKey);
+			localCache.delete(cacheKey);
 		}
 	}
 
@@ -324,12 +336,12 @@ public class Dao {
 		}
 		
 		String cacheKey = getCacheKey(type, key);
-		if (enableFirstCache(type)) {
-			cacheFirstLevel.set(cacheKey, obj);
+		if (enableLocalCache(type)) {
+			localCache.set(cacheKey, obj);
 		}
 
-		if (enableSecondCache(type)) {
-			cacheSecondLevel.set(cacheKey, object2String(obj));
+		if (enableExternalCache(type)) {
+			externalCache.set(cacheKey, object2String(obj));
 		}
 	}
 
@@ -366,16 +378,16 @@ public class Dao {
 	}
 
 	private boolean enableCache(Class<?> type) {
-		return enableSecondCache(type) || enableFirstCache(type);
+		return enableLocalCache(type) || enableExternalCache(type);
 	}
 
-	private boolean enableSecondCache(Class<?> type) {
-		boolean cached = cacheSecondLevel != null && orm.getSecondLevelCache(type);
+	private boolean enableExternalCache(Class<?> type) {
+		boolean cached = externalCache != null && orm.hasExternalCache(type);
 		return cached;
 	}
 
-	private boolean enableFirstCache(Class<?> type) {
-		boolean cached = cacheFirstLevel != null && orm.getFirstLevelCache(type);
+	private boolean enableLocalCache(Class<?> type) {
+		boolean cached = localCache != null && orm.hasLocalCache(type);
 		return cached;
 	}
 
@@ -385,11 +397,22 @@ public class Dao {
 
 	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
-		this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+	}
+
+	public JdbcTemplate getJdbcTemplateSlave() {
+		return jdbcTemplateSlave;
+	}
+
+	public void setJdbcTemplateSlave(JdbcTemplate jdbcTemplateSlave) {
+		this.jdbcTemplateSlave = jdbcTemplateSlave;
 	}
 
 	public NamedParameterJdbcTemplate getNamedParameterJdbcTemplate() {
 		return namedParameterJdbcTemplate;
+	}
+
+	public void setNamedParameterJdbcTemplate(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+		this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
 	}
 
 	public ORM getOrm() {
@@ -408,27 +431,28 @@ public class Dao {
 		this.sqlPageBuilder = sqlPageBuilder;
 	}
 
-	public LocalCache getCacheFirstLevel() {
-		return cacheFirstLevel;
+	public LocalCache getLocalCache() {
+		return localCache;
 	}
 
-	public JdbcTemplate getJdbcTemplateSlave() {
-		return jdbcTemplateSlave;
+	public void setLocalCache(LocalCache localCache) {
+		this.localCache = localCache;
 	}
 
-	public void setJdbcTemplateSlave(JdbcTemplate jdbcTemplateSlave) {
-		this.jdbcTemplateSlave = jdbcTemplateSlave;
+	public ExternalCache getExternalCache() {
+		return externalCache;
 	}
 
-	public void setCacheFirstLevel(LocalCache cacheFirstLevel) {
-		this.cacheFirstLevel = cacheFirstLevel;
+	public void setExternalCache(ExternalCache externalCache) {
+		this.externalCache = externalCache;
 	}
 
-	public ExternalCache getCacheSecondLevel() {
-		return cacheSecondLevel;
+	public KeyPolicy getKeyPolicy() {
+		return keyPolicy;
 	}
 
-	public void setCacheSecondLevel(ExternalCache cacheSecondLevel) {
-		this.cacheSecondLevel = cacheSecondLevel;
+	public void setKeyPolicy(KeyPolicy keyPolicy) {
+		this.keyPolicy = keyPolicy;
 	}
+	
 }

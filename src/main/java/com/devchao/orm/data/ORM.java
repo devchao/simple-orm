@@ -97,6 +97,7 @@ public class ORM {
 		}
 	}
 	
+	//TODO
 	public static boolean isSupportedProperty(Class<?> type) {
 		if (type == String.class || type == long.class || type == int.class
 				|| type == Date.class || type == boolean.class
@@ -562,7 +563,7 @@ public class ORM {
 		return existsSqlMap.get(type);
 	}
 
-	public boolean getFirstLevelCache(Class<?> type) {
+	public boolean hasLocalCache(Class<?> type) {
 		boolean[] cache = cacheMap.get(type);
 		if (cache == null) {
 			return false;
@@ -570,7 +571,7 @@ public class ORM {
 		return cache[0];
 	}
 
-	public boolean getSecondLevelCache(Class<?> type) {
+	public boolean hasExternalCache(Class<?> type) {
 		boolean[] cache = cacheMap.get(type);
 		if (cache == null) {
 			return false;
