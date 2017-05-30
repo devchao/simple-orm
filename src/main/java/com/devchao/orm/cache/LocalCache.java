@@ -4,7 +4,7 @@ package com.devchao.orm.cache;
  * 本地缓存接口规范
  */
 public interface LocalCache {
-    Object get(String key);
-    void set(String key, Object obj);
-    void delete(String key);
+    public <T> T get(String key, Class<T> type);
+    public void set(String key, Object obj);
+    public void delete(String key);
 }

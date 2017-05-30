@@ -10,7 +10,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.exceptions.JedisException;
 
-//TODO
+//TODO 连接池
 public class JedisClient {
 	
 	protected String redisHost;

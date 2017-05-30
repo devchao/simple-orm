@@ -70,7 +70,6 @@ public class Dao {
 	 * @param key
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public <T> T findCache(Class<T> type, Object key) {
 		
 		if (!orm.isOrmManagerEntity(type)) {
@@ -79,15 +78,13 @@ public class Dao {
 		
 		String cacheKey = getCacheKey(type, key);
 		
-		// 从一级缓存获取
+		// 从本地缓存获取
 		if (enableLocalCache(type)) {
-			Object o = localCache.get(cacheKey);
-			if (o != null) {
-				return (T)o;
-			}
+			T o = localCache.get(cacheKey, type);
+			if (o != null) return o;
 		}
 		
-		// 再从二级缓存获取
+		// 再从外部缓存获取
 		if (enableExternalCache(type)) {
 			String s = (String) externalCache.get(cacheKey);
 			if (s != null) {

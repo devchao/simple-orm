@@ -1,8 +1,8 @@
 
 package com.devchao.orm.cache;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -10,13 +10,8 @@ import java.util.Map;
  */
 public class HashCacheProvider implements LocalCache {
 	
-	private Map<String, Object> cache = new HashMap<String, Object>();
+	private Map<String, Object> cache = new ConcurrentHashMap<String, Object>();
 	
-    @Override
-    public Object get(String key) {
-    	return cache.get(key);
-    }
-
     @Override
     public void set(String key, Object obj) {
         cache.put(key, obj);
@@ -26,4 +21,10 @@ public class HashCacheProvider implements LocalCache {
     public void delete(String key) {
     	cache.remove(key);
     }
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T get(String key, Class<T> type) {
+		return (T) cache.get(key);
+	}
 }

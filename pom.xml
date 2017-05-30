@@ -7,11 +7,12 @@
 	<name>simple-orm</name>
 
 	<properties>
+		<finalName>simple-orm</finalName>
 		<project.build.sourceEncoding>UTF8</project.build.sourceEncoding>
 		<org.springframework.version>3.2.8.RELEASE</org.springframework.version>
-		<finalName>simple-orm</finalName>
 		<fastjson>1.2.2</fastjson>
 		<junit.version>4.11</junit.version>
+		<guava.version>16.0.1</guava.version>
 	</properties>
 
 	<dependencies>
@@ -66,10 +67,17 @@
 			<artifactId>cglib-nodep</artifactId>
 			<version>2.2.2</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>com.alibaba</groupId>
 			<artifactId>fastjson</artifactId>
 			<version>${fastjson}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${guava.version}</version>
 		</dependency>
 		
 	</dependencies>
